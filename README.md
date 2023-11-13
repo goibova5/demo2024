@@ -28,7 +28,7 @@
 |---------------|---------|--------------|--------------|-------------|
 |               |  ens192 |10.12.24.10   |  /24         |10.12.24.31  |
 |   ISP         |  ens224 |192.168.0.2   |  /27         |             |                              
-|               |  ens225 |192.168.0.30  |  /27         |             |
+|               |  ens256 |192.168.0.30  |  /27         |             |
 |   HQ-R        |  ens192 |192.168.0.136 |  /27         |192.168.0.162|
 |               |  ens224 |192.168.0.161 |  /30         |192.168.0.162|
 |   BR-R        |  ens192 |192.168.0.5   |  /25         |             |
@@ -56,19 +56,19 @@ nano /etc/network/interfaces
 ISP
 
 auto ens192
-iface ens9 inet static
+iface ens192 inet static
 address 10.12.24.10
 netmask 255.255.255.0
 gateway 10.12.24.254
 
 auto ens224
 iface ens224 inet static
-address192.168.0.2
+address 192.168.0.2
 netmask 255.255.255.224
 
-auto ens225
+auto ens256
 iface ens225 inet static
-address192.168.0.30
+address 192.168.0.30
 netmask 255.255.255.224
 ````
 
@@ -87,7 +87,7 @@ Ctrl+x
 systemctl restart networking
 ````
 
-Аналогично выполняем настройку на других машин.
+Аналогично выполняем настройку и на других машинах.
 
 
 Задание 1.2
@@ -104,12 +104,25 @@ apt-get install frr
 nano /etc/frr/deamons
 ```
 
-OSPFD+NO надо поменять на:
+OSPFD=NO надо поменять на:
 ```
 ospfd=YES
 ```
 
-Переагружаем пакетов frr:
+Переагружаем службу frr:
 ```
 systemctl restart frr
+```
+Заходим в среду роутера с посощью командой:
+```
+vtysh
+```
+
+Теперь пропишем адреса ближайших сетевых устройств (BR-R,HQ-R) в ospf
+```
+conf t
+router ospf
+   net 192.168.0.160/30 area 0
+   net 192.168.0.170/30 area 0
+sh ip ospf neighror
 ```
