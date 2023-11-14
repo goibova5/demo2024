@@ -17,9 +17,9 @@
 
 
 
-   
- ![Диаграмма без названия](https://github.com/goibova5/demo2024/assets/148867942/8ee6b7e8-238b-4b32-92f2-acaa21ae315d)
+   ![image](https://github.com/goibova5/demo2024/assets/148867942/ea83f36c-9a0c-45a7-a77c-b9a490b0fd6d)
 
+ 
 
 Таблица №1
 -------------
