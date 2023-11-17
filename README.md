@@ -172,3 +172,74 @@ router ospf
    net 192.168.0.170/30 area 0
 sh ip ospf neighror
 ```
+
+
+
+
+
+Задание 1.3
+----------
+
+Настройка автоматического распределения IP-адресов на роутере HQ-R. У сервера должен быть зарезервирован адрес.
+
+  Сперва на HQ-SRV надо загрузить dhcp:
+
+```
+apt install isc-dhcp-server
+```
+
+Далее нужно войти в конфигурацию dhcp:
+
+```
+nano /etc/default/isc-dhcp-server
+```
+
+Затем надо настроить раздачу IP-адрессов:
+```
+nnao /etc/dhcp/dhcpd.conf
+```
+Далее вписываем ...
+
+```
+subnet 192.168.0.0 netmask 255.255.255.0 {
+range 192.168.0.2 192.168.0.125;
+option domain-name-servers 8.8.8.8, 8.8.4.4;
+option routers 192.168.0.1;
+}
+```
+Теперь перезагружаем свой сервер:
+```
+systemctl restart isc-dhcp-server.servise
+```
+Вкдючаем службу dhcp:
+```
+systemctl enable isc-dhcp-server
+```
+
+Далее заходим в настройки интерфейсов:
+```
+nano /etc/network/interfaces
+```
+Интерфейс ens192 меняем с статического адреса на dhcp
+```
+# The primary network interface
+auto ens192
+iface ens192 inet dhcp
+#address 192.168.0.1
+#netmask 255.255.255.128
+#gateway 192.168.0.2
+#dns-nameservers 8.8.8.8
+```
+Послее перезагружаем сестевой интерфейс:
+```
+systemctl restart networking
+```
+Теперь проверим выданный IP-адресс с dhcp-сервера:
+```
+ip a
+```
+
+
+Задание 1.4
+-----
+Настройка локальных учетных записей на всех устройствах в соответствии с таблицей
