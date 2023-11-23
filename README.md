@@ -22,7 +22,7 @@
  
 
 Таблица №1
--------------
+
 |Имя устройства |Интерфейс|    IPv4      |Маска/префикс |    Шлюз     |
 |---------------|---------|--------------|--------------|-------------|
 |               |  ens192 |10.12.15.5    |  /24         |10.12.200.200|
@@ -147,7 +147,7 @@ apt-get install frr
 
 Проверим состояние frr:
 ```
-nano /etc/frr/deamons
+nano /etc/frr/daemons
 ```
 
 OSPFD=NO надо поменять на:
@@ -168,11 +168,17 @@ vtysh
 ```
 conf t
 router ospf
-   net 192.168.0.160/30 area 0
-   net 192.168.0.170/30 area 0
-sh ip ospf neighror
+   net 192.168.0./30 area 0
+   net 192.168.0.164/30 area 0
+sh ip ospf neighbor
 ```
-
+Так ж нв устройстве включаем пересылку пакетов, командоой:
+```
+vtysh
+conf t
+ip forwarding
+```
+Далее настроиваем frr на HQ-R и BR-R
 
 
 
@@ -182,7 +188,7 @@ sh ip ospf neighror
 
 Настройка автоматического распределения IP-адресов на роутере HQ-R. У сервера должен быть зарезервирован адрес.
 
-  Сперва на HQ-SRV надо загрузить dhcp:
+  Сперва на HQ-R надо загрузить dhcp:
 
 ```
 apt install isc-dhcp-server
@@ -194,6 +200,10 @@ apt install isc-dhcp-server
 nano /etc/default/isc-dhcp-server
 ```
 
+И указать интерфейс в сторону сети, куда будут идти IP-адреса:
+ 
+ ```INTERFACESV4="ens224"```
+
 Затем надо настроить раздачу IP-адрессов:
 ```
 nnao /etc/dhcp/dhcpd.conf
@@ -202,8 +212,7 @@ nnao /etc/dhcp/dhcpd.conf
 
 ```
 subnet 192.168.0.0 netmask 255.255.255.0 {
-range 192.168.0.2 192.168.0.125;
-option domain-name-servers 8.8.8.8, 8.8.4.4;
+range 192.168.0.4 192.168.0.125;
 option routers 192.168.0.1;
 }
 ```
@@ -215,6 +224,8 @@ systemctl restart isc-dhcp-server.servise
 ```
 systemctl enable isc-dhcp-server
 ```
+
+## Затем переходим на HQ-SRV
 
 Далее заходим в настройки интерфейсов:
 ```
@@ -238,8 +249,49 @@ systemctl restart networking
 ```
 ip a
 ```
-
+И там ддолжны получить:
+2: ens192: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:0c:29:9e:f2:c7 brd ff:ff:ff:ff:ff:ff
+    altname enp11s0
+    inet 192.168.0.4/24 brd 192.168.0.255 scope global dynamic ens192
+       valid_lft 30633sec preferred_lft 30633sec
+    inet6 fe80::20c:29ff:fe9e:f2c7/64 scope link
+       valid_lft forever preferred_lft forever
 
 Задание 1.4
 -----
 Настройка локальных учетных записей на всех устройствах в соответствии с таблицей
+| Учетная запись| Пароль| Примечание       |
+|:-------------:|:-----:|:----------------:|
+| Admin         | 22198 |ISP; HQ-R; HQ-SRV |
+|Branch admin   | 22198 |BR-R; BR-SRV      |
+|Network admin  | 22198 | HQ-R; BR-R; BR-SRV|
+
+
+Для начала зашла на HQ-SRV, и прописала команду, добавляющая пользователя:
+```
+useradd Admin
+```
+Затем задал пароль для пользователя Admin, командой:
+```
+passwd Admin
+```
+Чтобы просмотреть список созданных пользователей, нужно прописать команду:
+```
+nano /etc/passwd
+```
+После всех действий, должна появиться такая строка:
+```
+Admin:x:1001:1001::/home/Admin:/bin/sh
+```
+### Все те же действия я выполнила на HQ-R, ISP, BR-R, BR-SRV
+
+Задание 1.5
+---------
+Измерение пропускной способности сети между узлами HQ-R-ISP по средствам утилиты iperf3
+Для начало нужно устновить утилиту на устройствах HQ-SRV и BR-SRV, с помощью команды:
+```
+apt-install iperf3
+```
+
+Затем на компьютере выступающем в р
